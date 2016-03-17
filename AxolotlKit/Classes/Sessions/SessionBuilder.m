@@ -75,7 +75,7 @@
     NSData *theirIdentityKey  = preKeyBundle.identityKey.removeKeyType;
     NSData *theirSignedPreKey = preKeyBundle.signedPreKeyPublic.removeKeyType;
     
-    if (![self.identityStore isTrustedIdentityKey:theirIdentityKey recipientId:self.recipientId]) {
+    if (![self.identityStore isTrustedIdentityKey:theirIdentityKey recipientId:self.recipientId deviceId:preKeyBundle.deviceId]) {
         @throw [NSException exceptionWithName:UntrustedIdentityKeyException reason:@"Identity key is not valid" userInfo:@{}];
     }
 
@@ -109,15 +109,15 @@
     [sessionRecord.sessionState setAliceBaseKey:ourBaseKey.publicKey];
     
     [self.sessionStore  storeSession:self.recipientId deviceId:self.deviceId session:sessionRecord];
-    [self.identityStore saveRemoteIdentity:theirIdentityKey recipientId:self.recipientId];
+    [self.identityStore saveRemoteIdentity:theirIdentityKey recipientId:self.recipientId deviceId:preKeyBundle.deviceId];
 }
 
-- (int)processPrekeyWhisperMessage:(PreKeyWhisperMessage*)message withSession:(SessionRecord*)sessionRecord{
+- (int)processPrekeyWhisperMessage:(PreKeyWhisperMessage*)message withSession:(SessionRecord*)sessionRecord deviceId:(int)deviceId{
 
     int    messageVersion    = message.version;
     NSData *theirIdentityKey = message.identityKey.removeKeyType;
 
-    if (![self.identityStore isTrustedIdentityKey:theirIdentityKey recipientId:self.recipientId]) {
+    if (![self.identityStore isTrustedIdentityKey:theirIdentityKey recipientId:self.recipientId deviceId:deviceId]) {
         @throw [NSException exceptionWithName:UntrustedIdentityKeyException reason:@"There is a previously known identity key." userInfo:@{}];
     }
     
@@ -132,7 +132,7 @@
             break;
     }
     
-    [self.identityStore saveRemoteIdentity:theirIdentityKey recipientId:self.recipientId];
+    [self.identityStore saveRemoteIdentity:theirIdentityKey recipientId:self.recipientId deviceId:deviceId];
     return unSignedPrekeyId;
 }
 

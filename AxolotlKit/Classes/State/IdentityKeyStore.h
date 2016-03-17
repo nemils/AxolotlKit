@@ -13,7 +13,7 @@
 
 - (ECKeyPair*)identityKeyPair;
 - (int)localRegistrationId;
-- (void)saveRemoteIdentity:(NSData*)identityKey recipientId:(NSString*)recipientId;
-- (BOOL)isTrustedIdentityKey:(NSData*)identityKey recipientId:(NSString*)recipientId;
+- (void)saveRemoteIdentity:(NSData*)identityKey recipientId:(NSString*)recipientId deviceId:(int)deviceId;
+- (BOOL)isTrustedIdentityKey:(NSData*)identityKey recipientId:(NSString*)recipientId deviceId:(int)deviceId;
 
 @end

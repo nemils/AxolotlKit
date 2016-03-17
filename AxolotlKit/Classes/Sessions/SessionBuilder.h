@@ -31,6 +31,7 @@
 
 - (void)processPrekeyBundle:(PreKeyBundle *)preKeyBundle;
 - (int)processPrekeyWhisperMessage:(PreKeyWhisperMessage *)message
-                       withSession:(SessionRecord *)sessionRecord;
+                       withSession:(SessionRecord *)sessionRecord
+                          deviceId:(int)deviceId;
 
 @end

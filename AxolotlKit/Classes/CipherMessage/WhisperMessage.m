@@ -12,6 +12,7 @@
 #import "WhisperTextProtocol.pb.h"
 #import "NSData+keyVersionByte.h"
 #import "SerializationUtilities.h"
+#import "AxolotlKitLogging.h"
 
 #define VERSION_LENGTH 1
 
@@ -98,6 +99,14 @@
                                  serialized:data];
     
     if (![theirMac isEqualToData:ourMac]) {
+        AXOLog(@"[AXO] MAC verification failed for senderIdentityKey: %@ receiverIdentityKey: %@ macKey: %@ theirMac: %@ ourMac: %@",
+               senderIdentityKey,
+               receiverIdentityKey,
+               macKey,
+               theirMac,
+               ourMac);
+        
+        
         @throw [NSException exceptionWithName:InvalidMessageException reason:@"Bad Mac!" userInfo:@{}];
     }
 }

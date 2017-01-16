@@ -38,6 +38,12 @@
                                     macKey:macKey
                                 serialized:serialized];
     
+    AXOLog(@"[AXO] Created mac during encryption with params:\n senderIdentityKey - %@ \n receiverIdentityKey - %@ \n, macKey - %@ \n mac result - %@",
+           [senderIdentityKey prependKeyType],
+           [receiverIdentityKey prependKeyType],
+           macKey,
+           mac);
+    
     [serialized appendData:mac];
     
     if (self) {
@@ -98,15 +104,14 @@
                                      macKey:macKey
                                  serialized:data];
     
+    AXOLog(@"[AXO] Will verify mac during decryption with params:\n senderIdentityKey - %@ \n receiverIdentityKey - %@ \n, macKey - %@ \n theirMac - %@ \n ourMac - %@",
+           senderIdentityKey,
+           receiverIdentityKey,
+           macKey,
+           theirMac,
+           ourMac);
+    
     if (![theirMac isEqualToData:ourMac]) {
-        AXOLog(@"[AXO] MAC verification failed for senderIdentityKey: %@ receiverIdentityKey: %@ macKey: %@ theirMac: %@ ourMac: %@",
-               senderIdentityKey,
-               receiverIdentityKey,
-               macKey,
-               theirMac,
-               ourMac);
-        
-        
         @throw [NSException exceptionWithName:InvalidMessageException reason:@"Bad Mac!" userInfo:@{}];
     }
 }

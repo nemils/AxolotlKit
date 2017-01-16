@@ -73,7 +73,6 @@
                                                          identityKeyStore:identityKeyStore
                                                               recipientId:recipientId
                                                                  deviceId:deviceId];
-        AXOLog(@"[AXO] %@ recipientId: %@ deviceId: %d", NSStringFromSelector(_cmd), recipientId, deviceId);
     }
     
     return self;
@@ -131,31 +130,17 @@
     SessionRecord *sessionRecord = [self.sessionStore loadSession:self.recipientId deviceId:self.deviceId];
     int unsignedPreKeyId         = [self.sessionBuilder processPrekeyWhisperMessage:preKeyWhisperMessage withSession:sessionRecord deviceId:self.deviceId];
     NSData *plaintext            = [self decryptWithSessionRecord:sessionRecord whisperMessage:preKeyWhisperMessage.message];
-
-    AXOLog(@"[AXO] %@ recipientId: %@ deviceId: %d unsignedPreKeyId: %d",
-           NSStringFromSelector(_cmd),
-           self.recipientId,
-           self.deviceId,
-           unsignedPreKeyId);
     
     [self.sessionStore storeSession:self.recipientId deviceId:self.deviceId session:sessionRecord];
     
     if (unsignedPreKeyId >= 0) {
         [self.prekeyStore removePreKey:unsignedPreKeyId];
-        
-        AXOLog(@"[AXO] unsignedPreKeyId >= 0, removing unsignedPreKeyId: %d",
-               unsignedPreKeyId);
     }
     
     return plaintext;
 }
 
 - (NSData*)decryptWhisperMessage:(WhisperMessage*)message{
-    AXOLog(@"[AXO] %@ recipientId: %@ deviceId: %d",
-           NSStringFromSelector(_cmd),
-           self.recipientId,
-           self.deviceId);
-    
     if (![self.sessionStore containsSession:self.recipientId deviceId:self.deviceId]) {
         @throw [NSException exceptionWithName:NoSessionException reason:[NSString stringWithFormat:@"No session for: %@, %d", self.recipientId, self.deviceId] userInfo:nil];
     }
@@ -174,19 +159,10 @@
     NSArray        *previousStates = [sessionRecord previousSessionStates];
     NSMutableArray *exceptions     = [NSMutableArray array];
     
-    AXOLog(@"[AXO] %@ sessionState %@ previousStates.count %lu decrypting message.counter: %d message.previousCounter: %d",
-           NSStringFromSelector(_cmd),
-           sessionState,
-           (unsigned long)previousStates.count,
-           message.counter,
-           message.previousCounter);
-    
     @try {
         return [self decryptWithSessionState:sessionState whisperMessage:message];
     }
     @catch (NSException *exception) {
-        AXOLog(@"[AXO] decryptWithSessionState exception: %@", exception);
-        
         if ([exception.name isEqualToString:InvalidMessageException]) {
             [exceptions addObject:exception];
         } else {
@@ -199,19 +175,15 @@
             return [self decryptWithSessionState:previousState whisperMessage:message];
         }
         @catch (NSException *exception) {
-            AXOLog(@"[AXO] decryptWithSessionState for previousStates exception: %@", exception);
-            
             [exceptions addObject:exception];
         }
     }
     
-    AXOLog(@"[AXO] ! No valid sessions with exceptions %@", exceptions);
     @throw [NSException exceptionWithName:InvalidMessageException reason:@"No valid sessions" userInfo:@{@"Exceptions":exceptions}];
 }
 
 -(NSData*)decryptWithSessionState:(SessionState*)sessionState whisperMessage:(WhisperMessage*)message{
     if (![sessionState hasSenderChain]) {
-        AXOLog(@"[AXO] ![sessionState hasSenderChain] throwing Uninitialized session!");
         @throw [NSException exceptionWithName:InvalidMessageException reason:@"Uninitialized session!" userInfo:nil];
     }
     
@@ -224,14 +196,6 @@
     int counter              = message.counter;
     ChainKey *chainKey       = [self getOrCreateChainKeys:sessionState theirEphemeral:theirEphemeral];
     MessageKeys *messageKeys = [self getOrCreateMessageKeysForSession:sessionState theirEphemeral:theirEphemeral chainKey:chainKey counter:counter];
-    
-    AXOLog(@"[AXO] verifying mac with theirEphemeral.length: %lu counter: %d chainKey.index :%d chainKey.key: %@ messageKeys.cipherKey: %@ messageKeys.iv: %@",
-           theirEphemeral.length,
-           counter,
-           chainKey.index,
-           chainKey.key,
-           messageKeys.cipherKey,
-           messageKeys.iv);
     
     [message verifyMacWithVersion:messageVersion senderIdentityKey:sessionState.remoteIdentityKey receiverIdentityKey:sessionState.localIdentityKey macKey:messageKeys.macKey];
     

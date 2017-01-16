@@ -91,6 +91,7 @@
 
     NSData *ciphertextBody = [AES_CBC encryptCBCMode:paddedMessage withKey:messageKeys.cipherKey withIV:messageKeys.iv];
 
+    AXOLog(@"Will create a whisper message for local identity: %lu; remote identity: %lu", session.localRegistrationId, session.remoteIdentityKey);
     id<CipherMessage> cipherMessage = [[WhisperMessage alloc] initWithVersion:sessionVersion
                                                                        macKey:messageKeys.macKey
                                                              senderRatchetKey:senderRatchetKey.prependKeyType
@@ -197,6 +198,7 @@
     ChainKey *chainKey       = [self getOrCreateChainKeys:sessionState theirEphemeral:theirEphemeral];
     MessageKeys *messageKeys = [self getOrCreateMessageKeysForSession:sessionState theirEphemeral:theirEphemeral chainKey:chainKey counter:counter];
     
+    AXOLog(@"[AXO] Will verify mac for local idenity: %lu; remote identity: %lu", sessionState.localRegistrationId, sessionState.remoteIdentityKey);
     [message verifyMacWithVersion:messageVersion senderIdentityKey:sessionState.remoteIdentityKey receiverIdentityKey:sessionState.localIdentityKey macKey:messageKeys.macKey];
     
     NSData *plaintext = [AES_CBC decryptCBCMode:message.cipherText withKey:messageKeys.cipherKey withIV:messageKeys.iv];

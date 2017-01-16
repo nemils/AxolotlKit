@@ -112,6 +112,7 @@
            ourMac);
     
     if (![theirMac isEqualToData:ourMac]) {
+        AXOLog(@"[AXO] mac verification failed");
         @throw [NSException exceptionWithName:InvalidMessageException reason:@"Bad Mac!" userInfo:@{}];
     }
 }

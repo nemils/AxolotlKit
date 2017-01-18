@@ -254,6 +254,7 @@
         chainKey = chainKey.nextChainKey;
     }
     
+    AXOLog(@"[AXO][MESSAGE COUNTERS] Created message keys with counter %lu", counter);
     [sessionState setReceiverChainKey:theirEphemeral chainKey:[chainKey nextChainKey]];
     return [chainKey messageKeys];
 }

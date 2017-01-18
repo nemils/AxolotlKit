@@ -235,9 +235,11 @@
     
     if (chainKey.index > counter) {
         if ([sessionState hasMessageKeys:theirEphemeral counter:counter]) {
+            AXOLog(@"[AXO][MESSAGE COUNTERS] Removing message keys with counter %lu", counter);
             return [sessionState removeMessageKeys:theirEphemeral counter:counter];
         }
         else{
+            AXOLog(@"[AXO][MESSAGE COUNTERS] No message keys with counter %lu. 'Received message with old counter exception will be thrown'", counter);
             @throw [NSException exceptionWithName:DuplicateMessageException reason:@"Received message with old counter!" userInfo:@{}];
         }
     }

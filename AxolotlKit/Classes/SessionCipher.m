@@ -198,7 +198,27 @@
     ChainKey *chainKey       = [self getOrCreateChainKeys:sessionState theirEphemeral:theirEphemeral];
     MessageKeys *messageKeys = [self getOrCreateMessageKeysForSession:sessionState theirEphemeral:theirEphemeral chainKey:chainKey counter:counter];
     
-    [message verifyMacWithVersion:messageVersion senderIdentityKey:sessionState.remoteIdentityKey receiverIdentityKey:sessionState.localIdentityKey macKey:messageKeys.macKey];
+    AXOLog(@"[AXO] Will verify mac for %@", [message isKindOfClass:[PreKeyWhisperMessage class]] ? @"PreKeyWhisperMessage" : @"WhisperMessage");
+    AXOLog(@"[AXO] Will verify mac for local idenity: %lu; remote identity: %lu", sessionState.localRegistrationId, sessionState.remoteIdentityKey);
+    
+    @try {
+        [message verifyMacWithVersion:messageVersion senderIdentityKey:sessionState.remoteIdentityKey receiverIdentityKey:sessionState.localIdentityKey macKey:messageKeys.macKey];
+    }
+    @catch (NSException *exception) {
+        
+        if ([exception.reason isEqualToString:@"Bad Mac!"]) {
+            @try {
+                NSData *plaintext = [AES_CBC decryptCBCMode:message.cipherText withKey:messageKeys.cipherKey withIV:messageKeys.iv];
+                AXOLog(@"[AXO] Succeeded in message decryption after getting bad mac!");
+            }
+            @catch (NSException *exception) {
+                AXOLog(@"[AXO] Failed to decrypt message using messageKeys after getting bad mac.");
+            }
+        }
+        
+        @throw exception;
+    }
+    
     
     NSData *plaintext = [AES_CBC decryptCBCMode:message.cipherText withKey:messageKeys.cipherKey withIV:messageKeys.iv];
     

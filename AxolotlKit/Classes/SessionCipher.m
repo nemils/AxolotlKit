@@ -91,7 +91,15 @@
 
     NSData *ciphertextBody = [AES_CBC encryptCBCMode:paddedMessage withKey:messageKeys.cipherKey withIV:messageKeys.iv];
 
-    AXOLog(@"Will create a whisper message for local identity: %lu; remote identity: %lu", session.localRegistrationId, session.remoteIdentityKey);
+    AXOLog(@"[AXO][MESSAGE COUNTERS][NO VALID SESSIONS] Will create a whisper message for local identity: %@; remote identity: %@; senderChainKey index: %lu; senderChainKey: %@; messageKeys index: %lu; senderRathetKey; previousCounter: %lu",
+           session.localIdentityKey,
+           session.remoteIdentityKey,
+           chainKey.index,
+           chainKey.key,
+           messageKeys.index,
+           senderRatchetKey,
+           previousCounter);
+    
     id<CipherMessage> cipherMessage = [[WhisperMessage alloc] initWithVersion:sessionVersion
                                                                        macKey:messageKeys.macKey
                                                              senderRatchetKey:senderRatchetKey.prependKeyType
@@ -198,8 +206,17 @@
     ChainKey *chainKey       = [self getOrCreateChainKeys:sessionState theirEphemeral:theirEphemeral];
     MessageKeys *messageKeys = [self getOrCreateMessageKeysForSession:sessionState theirEphemeral:theirEphemeral chainKey:chainKey counter:counter];
     
-    AXOLog(@"[AXO] Will verify mac for %@", [message isKindOfClass:[PreKeyWhisperMessage class]] ? @"PreKeyWhisperMessage" : @"WhisperMessage");
-    AXOLog(@"[AXO] Will verify mac for local idenity: %lu; remote identity: %lu", sessionState.localRegistrationId, sessionState.remoteIdentityKey);
+    AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for %@", [message isKindOfClass:[PreKeyWhisperMessage class]] ? @"PreKeyWhisperMessage" : @"WhisperMessage");
+    
+    
+    AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for local idenity: %@; remote identity: %@; chainKey index: @lu; chainKey: %@; messageKeys index: %lu; senderRathetKey: %@; counter: %lu",
+           sessionState.localIdentityKey,
+           sessionState.remoteIdentityKey,
+           chainKey.index,
+           chainKey.key,
+           messageKeys.index,
+           theirEphemeral,
+           counter);
     
     @try {
         [message verifyMacWithVersion:messageVersion senderIdentityKey:sessionState.remoteIdentityKey receiverIdentityKey:sessionState.localIdentityKey macKey:messageKeys.macKey];
@@ -209,10 +226,10 @@
         if ([exception.reason isEqualToString:@"Bad Mac!"]) {
             @try {
                 NSData *plaintext = [AES_CBC decryptCBCMode:message.cipherText withKey:messageKeys.cipherKey withIV:messageKeys.iv];
-                AXOLog(@"[AXO] Succeeded in message decryption after getting bad mac!");
+                AXOLog(@"[AXO][NO VALID SESSIONS] Succeeded in message decryption after getting bad mac! Decrypted message: %@", plaintext);
             }
             @catch (NSException *exception) {
-                AXOLog(@"[AXO] Failed to decrypt message using messageKeys after getting bad mac.");
+                AXOLog(@"[AXO][NO VALID SESSIONS] Failed to decrypt message using messageKeys after getting bad mac.");
             }
         }
         
@@ -230,6 +247,7 @@
 - (ChainKey*)getOrCreateChainKeys:(SessionState*)sessionState theirEphemeral:(NSData*)theirEphemeral{
     @try {
         if ([sessionState hasReceiverChain:theirEphemeral]) {
+            AXOLog(@"[AXO][NO VALID SESSIONS] Retrieving reciever chain key for sender ratchet key %@", theirEphemeral);
             return [sessionState receiverChainKey:theirEphemeral];
         } else{
             RootKey *rootKey = [sessionState rootKey];
@@ -237,6 +255,16 @@
             RKCK *receiverChain = [rootKey createChainWithTheirEphemeral:theirEphemeral ourEphemeral:ourEphemeral];
             ECKeyPair *ourNewEphemeral = [Curve25519 generateKeyPair];
             RKCK *senderChain = [receiverChain.rootKey createChainWithTheirEphemeral:theirEphemeral ourEphemeral:ourNewEphemeral];
+            
+            AXOLog(@"[AXO][NO VALID SESSIONS] Creating receiver chain key for sender ratchet key %@; root key: %@, receiver rathet key: %@; created receiver chain key: %@; creted receiver chain key index: %lu; new receiver rathetKey: %@; new sender chain key %@; new sender chain key index: %lu",
+                   theirEphemeral,
+                   rootKey.keyData,
+                   ourEphemeral,
+                   receiverChain.chainKey.key,
+                   receiverChain.chainKey.index,
+                   ourNewEphemeral.publicKey,
+                   senderChain.chainKey.key,
+                   senderChain.chainKey.index);
             
             [sessionState setRootKey:senderChain.rootKey];
             [sessionState addReceiverChain:theirEphemeral chainKey:receiverChain.chainKey];

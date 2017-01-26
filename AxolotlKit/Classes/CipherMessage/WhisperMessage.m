@@ -39,8 +39,8 @@
                                 serialized:serialized];
     
     AXOLog(@"[AXO][MAC] Created mac during encryption with params:\n senderIdentityKey - %@ \n receiverIdentityKey - %@ \n, macKey - %@ \n mac result - %@",
-           [senderIdentityKey prependKeyType],
-           [receiverIdentityKey prependKeyType],
+           senderIdentityKey,
+           receiverIdentityKey,
            macKey,
            mac);
     

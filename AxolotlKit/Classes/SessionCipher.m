@@ -209,7 +209,7 @@
     AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for %@", [message isKindOfClass:[PreKeyWhisperMessage class]] ? @"PreKeyWhisperMessage" : @"WhisperMessage");
     
     
-    AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for local idenity: %@; remote identity: %@; chainKey index: @lu; chainKey: %@; messageKeys index: %lu; senderRathetKey: %@; counter: %lu",
+    AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for local idenity: %@; remote identity: %@; chainKey index: %lu; chainKey: %@; messageKeys index: %lu; senderRathetKey: %@; counter: %lu",
            sessionState.localIdentityKey,
            sessionState.remoteIdentityKey,
            chainKey.index,

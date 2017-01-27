@@ -91,7 +91,7 @@
 
     NSData *ciphertextBody = [AES_CBC encryptCBCMode:paddedMessage withKey:messageKeys.cipherKey withIV:messageKeys.iv];
 
-    AXOLog(@"[AXO][MESSAGE COUNTERS][NO VALID SESSIONS] Will create a whisper message for local identity: %@; remote identity: %@; senderChainKey index: %lu; senderChainKey: %@; messageKeys index: %lu; senderRathetKey; previousCounter: %lu",
+    AXOLog(@"[AXO][MESSAGE COUNTERS][NO VALID SESSIONS] Will create a whisper message for local identity: %@; remote identity: %@; senderChainKey index: %lu; senderChainKey: %@; messageKeys index: %lu; senderRathetKey: %@; previousCounter: %lu",
            session.localIdentityKey,
            session.remoteIdentityKey,
            chainKey.index,

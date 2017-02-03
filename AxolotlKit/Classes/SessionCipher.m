@@ -91,7 +91,7 @@
 
     NSData *ciphertextBody = [AES_CBC encryptCBCMode:paddedMessage withKey:messageKeys.cipherKey withIV:messageKeys.iv];
 
-    AXOLog(@"[AXO][MESSAGE COUNTERS][NO VALID SESSIONS] Will create a whisper message for local identity: %@; remote identity: %@; senderChainKey index: %lu; senderChainKey: %@; messageKeys index: %lu; senderRathetKey: %@; previousCounter: %lu",
+    AXOLog(@"[AXO][MESSAGE COUNTERS][NO VALID SESSIONS] Will create a whisper message for\n local identity: %@;\n remote identity: %@;\n senderChainKey index: %i;\n senderChainKey: %@;\n messageKeys index: %i;\n senderRathetKey: %@;\n previousCounter: %i",
            session.localIdentityKey,
            session.remoteIdentityKey,
            chainKey.index,
@@ -209,7 +209,7 @@
     AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for %@", [message isKindOfClass:[PreKeyWhisperMessage class]] ? @"PreKeyWhisperMessage" : @"WhisperMessage");
     
     
-    AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for local idenity: %@; remote identity: %@; chainKey index: %lu; chainKey: %@; messageKeys index: %lu; senderRathetKey: %@; counter: %lu",
+    AXOLog(@"[AXO][NO VALID SESSIONS] Will verify mac for\n local idenity: %@;\n remote identity: %@;\n chainKey index: %i;\n chainKey: %@;\n messageKeys index: %i;\n senderRathetKey: %@;\n counter: %i",
            sessionState.localIdentityKey,
            sessionState.remoteIdentityKey,
            chainKey.index,
@@ -256,10 +256,10 @@
             ECKeyPair *ourNewEphemeral = [Curve25519 generateKeyPair];
             RKCK *senderChain = [receiverChain.rootKey createChainWithTheirEphemeral:theirEphemeral ourEphemeral:ourNewEphemeral];
             
-            AXOLog(@"[AXO][NO VALID SESSIONS] Creating receiver chain key for sender ratchet key %@; root key: %@, receiver rathet key: %@; created receiver chain key: %@; creted receiver chain key index: %lu; new receiver rathetKey: %@; new sender chain key %@; new sender chain key index: %lu",
+            AXOLog(@"[AXO][NO VALID SESSIONS] Creating receiver chain key for\n sender ratchet key %@;\n root key: %@,\n receiver rathet key: %@;\n created receiver chain key: %@;\n creted receiver chain key index: %i;\n new receiver rathetKey: %@;\n new sender chain key %@;\n new sender chain key index: %i",
                    theirEphemeral,
                    rootKey.keyData,
-                   ourEphemeral,
+                   ourEphemeral.publicKey,
                    receiverChain.chainKey.key,
                    receiverChain.chainKey.index,
                    ourNewEphemeral.publicKey,
@@ -283,11 +283,11 @@
     
     if (chainKey.index > counter) {
         if ([sessionState hasMessageKeys:theirEphemeral counter:counter]) {
-            AXOLog(@"[AXO][MESSAGE COUNTERS] Removing message keys with counter %lu", counter);
+            AXOLog(@"[AXO][MESSAGE COUNTERS] Removing message keys with counter %i", counter);
             return [sessionState removeMessageKeys:theirEphemeral counter:counter];
         }
         else{
-            AXOLog(@"[AXO][MESSAGE COUNTERS] No message keys with counter %lu. 'Received message with old counter exception will be thrown'", counter);
+            AXOLog(@"[AXO][MESSAGE COUNTERS] No message keys with counter %i. 'Received message with old counter exception will be thrown'", counter);
             @throw [NSException exceptionWithName:DuplicateMessageException reason:@"Received message with old counter!" userInfo:@{}];
         }
     }
@@ -302,7 +302,7 @@
         chainKey = chainKey.nextChainKey;
     }
     
-    AXOLog(@"[AXO][MESSAGE COUNTERS] Created message keys with counter %lu", counter);
+    AXOLog(@"[AXO][MESSAGE COUNTERS] Created message keys with counter %i", counter);
     [sessionState setReceiverChainKey:theirEphemeral chainKey:[chainKey nextChainKey]];
     return [chainKey messageKeys];
 }

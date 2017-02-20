@@ -23,6 +23,8 @@
 #import <25519/Ed25519.h>
 
 #import "PrekeyBundle.h"
+#import "AxolotlKitLogging.h"
+#import "ChainKey.h"
 
 #define CURRENT_VERSION 3
 #define MINUMUM_VERSION 3
@@ -75,6 +77,8 @@
     NSData *theirIdentityKey  = preKeyBundle.identityKey.removeKeyType;
     NSData *theirSignedPreKey = preKeyBundle.signedPreKeyPublic.removeKeyType;
     
+    AXOLog(@"[AXO] Processing prekey bundle for their identity key: %@", theirIdentityKey);
+    
     if (![self.identityStore isTrustedIdentityKey:theirIdentityKey recipientId:self.recipientId deviceId:preKeyBundle.deviceId]) {
         @throw [NSException exceptionWithName:UntrustedIdentityKeyException reason:@"Identity key is not valid" userInfo:@{}];
     }
@@ -98,6 +102,10 @@
                                                                          theirRatchetKey:theirSignedPreKey];
     
     if (!sessionRecord.isFresh) {
+        AXOLog(@"[AXO] Archiving current session with sender chain key: %@ index: %d",
+               sessionRecord.sessionState.senderChainKey.key,
+               sessionRecord.sessionState.senderChainKey.index);
+        
         [sessionRecord archiveCurrentState];
     }
     
@@ -144,6 +152,8 @@
         return -1;
     }
     
+    AXOLog(@"[AXO] Processing prekey whisper message for their identity key: %@", message.identityKey);
+    
     ECKeyPair *ourSignedPrekey = [self.signedPreKeyStore loadSignedPrekey:message.signedPrekeyId].keyPair;
     
     BobAxolotlParameters *params = [[BobAxolotlParameters alloc] initWithMyIdentityKeyPair:self.identityStore.identityKeyPair
@@ -154,6 +164,10 @@
                                                                               theirBaseKey:baseKey];
     
     if (!sessionRecord.isFresh) {
+        AXOLog(@"[AXO] Archiving current session with sender chain key: %@ index: %d",
+               sessionRecord.sessionState.senderChainKey.key,
+               sessionRecord.sessionState.senderChainKey.index);
+        
         [sessionRecord archiveCurrentState];
     }
     

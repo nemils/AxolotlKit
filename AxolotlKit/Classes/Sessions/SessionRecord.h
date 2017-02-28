@@ -23,4 +23,6 @@
 - (void)promoteState:(SessionState*)promotedState;
 - (void)setState:(SessionState*)sessionState;
 
+- (void)replaceSessionState:(SessionState *)oldSession withSessionState:(SessionState *)newSession;
+
 @end

@@ -82,7 +82,7 @@
     return NO;
 }
 
-- (SessionState*)sessionState{
+- (SessionState*)sessionState {
     return _sessionState;
 }
 
@@ -110,6 +110,18 @@
 
 - (void)setState:(SessionState *)sessionState{
     self.sessionState = sessionState;
+}
+
+- (void)replaceSessionState:(SessionState *)oldSession withSessionState:(SessionState *)newSession
+{
+    if (self.sessionState == oldSession) {
+        self.sessionState = newSession;
+    }
+    
+    NSUInteger foundIndex = [self.previousStates indexOfObject:oldSession];
+    if (foundIndex != NSNotFound) {
+        [self.previousStates replaceObjectAtIndex:foundIndex withObject:newSession];
+    }
 }
 
 @end

@@ -128,12 +128,22 @@
     return __localRegistrationId;
 }
 
-- (void)saveRemoteIdentity:(NSData *)identityKey recipientId:(NSString*)recipientId{
-    [self.trustedKeys setObject:identityKey forKey:recipientId];
+- (void)saveRemoteIdentity:(NSData *)identityKey recipientId:(NSString*)recipientId deviceId:(int)deviceId
+{
+    if (!self.trustedKeys[recipientId]) {
+        self.trustedKeys[recipientId] = @{}.mutableCopy;
+    }
+    
+    self.trustedKeys[recipientId][@(deviceId)] = identityKey;
 }
 
-- (BOOL)isTrustedIdentityKey:(NSData *)identityKey recipientId:(NSString*)recipientId{
-    NSData *data = [self.trustedKeys objectForKey:recipientId];
+- (BOOL)isTrustedIdentityKey:(NSData *)identityKey recipientId:(NSString*)recipientId deviceId:(int)deviceId
+{
+    if (!self.trustedKeys[recipientId]) {
+        self.trustedKeys[recipientId] = @{}.mutableCopy;
+    }
+    
+    NSData *data = self.trustedKeys[recipientId][@(deviceId)];
     
     if (data) {
         return [data isEqualToData:identityKey];
@@ -141,6 +151,7 @@
     
     return YES; // Trust on first use
 }
+
 
 # pragma mark Session Store
 
@@ -174,7 +185,6 @@
     }
     return NO;
 }
-
 
 @end
 

@@ -121,6 +121,18 @@ static NSString* const kCoderPendingPrekey    = @"kCoderPendingPrekey";
     [aCoder encodeObject:self.pendingPreKey forKey:kCoderPendingPrekey];
 }
 
+- (id)copyWithZone:(nullable NSZone *)zone {
+    NSMutableData *data = [NSMutableData new];
+    NSKeyedArchiver *archiver = [[NSKeyedArchiver allocWithZone:zone] initForWritingWithMutableData:data];
+    [self encodeWithCoder:archiver];
+    [archiver finishEncoding];
+    
+    NSKeyedUnarchiver *decoder = [[NSKeyedUnarchiver allocWithZone:zone] initForReadingWithData:data];
+    SessionState *sessionState = [[SessionState allocWithZone:zone] initWithCoder:decoder];
+    [decoder finishDecoding];
+    return sessionState;
+}
+
 - (NSData*)senderRatchetKey{
     return [[self senderRatchetKeyPair] publicKey];
 }

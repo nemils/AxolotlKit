@@ -164,12 +164,23 @@
 
 
 -(NSData*)decryptWithSessionRecord:(SessionRecord*)sessionRecord whisperMessage:(WhisperMessage*)message{
-    SessionState   *sessionState   = [sessionRecord sessionState];
-    NSArray        *previousStates = [sessionRecord previousSessionStates];
-    NSMutableArray *exceptions     = [NSMutableArray array];
+    SessionState            *sessionState = [sessionRecord sessionState];
+    NSMutableArray        *previousStates = [sessionRecord previousSessionStates];
+    NSMutableArray            *exceptions = [NSMutableArray array];
     
     @try {
-        return [self decryptWithSessionState:sessionState whisperMessage:message];
+        /*
+         Creating a copy of a SessionState because `decryptWithSessionState:whisperMessage:` is mutating this object.
+         In cases when decription fails we want to revert those changes. As there is not API to revert we are applying 
+         SessionState to sessionRecord only if decryption succeeds.
+         Situation like this can happen in case of arrival of out-of-order message. If that message "belongs" to one of
+         previous session states, not reverting changes in current state will cause InvalidSession next time message will
+         be sent using this session.
+         */
+        SessionState *sessionStateCopy = [sessionState copy];
+        NSData * decryptedData = [self decryptWithSessionState:sessionStateCopy whisperMessage:message];
+        [sessionRecord replaceSessionState:sessionState withSessionState:sessionStateCopy];
+        return decryptedData;
     }
     @catch (NSException *exception) {
         if ([exception.name isEqualToString:InvalidMessageException]) {
@@ -179,9 +190,13 @@
         }
     }
     
-    for (SessionState *previousState in previousStates) {
+    for (SessionState *previousState in [previousStates copy]) {
         @try {
-            return [self decryptWithSessionState:previousState whisperMessage:message];
+            // Creating a copy of a SessionState fot the same reason as above.
+            SessionState *previousStateCopy = [previousState copy];
+            NSData * decryptedData = [self decryptWithSessionState:previousStateCopy whisperMessage:message];
+            [sessionRecord replaceSessionState:previousState withSessionState:previousStateCopy];
+            return decryptedData;
         }
         @catch (NSException *exception) {
             [exceptions addObject:exception];
